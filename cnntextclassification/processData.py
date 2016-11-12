@@ -165,6 +165,7 @@ def buildDataMatrix(pos, neg, word_vec, word_indice):
         onedata = pos[i]
         dataMatrix = vecMap[onedata]
         print dataMatrix
+        break
 
 
 if __name__ == "__main__":
