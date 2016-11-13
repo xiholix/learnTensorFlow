@@ -63,3 +63,4 @@ rexx/spider.py
 *data/
 *.zip
 *.png
+*.pyc
