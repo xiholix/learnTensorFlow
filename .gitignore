@@ -64,3 +64,4 @@ rexx/spider.py
 *.zip
 *.png
 *.pyc
+*log/
