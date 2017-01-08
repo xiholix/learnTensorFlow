@@ -1,7 +1,7 @@
-#-*-coding:utf8-*-
+# -*-coding:utf8-*-
 from processData import *
 import numpy as np
-class dataHelper:
+class  DataHelper:
     def __init__(self, batch_size, max_length, data, word_vec, word_indices, labels):
         self.batch_size = batch_size
         self.index = 0
@@ -10,10 +10,11 @@ class dataHelper:
         self.word_vec = word_vec
         self.word_indices = word_indices
         self.labels = labels
-        rows = len(word_indices.values()) + 1
+        rows = len(word_indices.values()) + 1    # what's the type of word_indices.  it maybe is a dict
         self.vecMap = np.random.uniform(-0.25, 0.25, (rows, len(word_vec.values()[0])))
         self.vecMap[0] = 0
         for word, vec in word_vec.items():
+            # by this method, we can use the index get the responding vector from this map
             self.vecMap[word_indices[word]] = vec
 
     def next(self):
@@ -45,7 +46,7 @@ def test():
     word_vec = {0:[0,0,0,0], 1:[1,1,1,1], 6:[6,6,6,6], 9:[9,9,9,9]}
     word_indices = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:10, 11:11, 12:12,
                     13:13, 14:14, 15:15}
-    d = dataHelper(3, 5, data, word_vec, word_indices, labels)
+    d = DataHelper(3, 5, data, word_vec, word_indices, labels)
     for i in xrange(4):
         data, labels = d.next()
         print data
@@ -78,7 +79,7 @@ def usedataHelperOnTrueData():
     labels = labels[indice]
     print data.shape
     print labels.shape
-    d = dataHelper(5, 10662, data, word_vec, word_indice, labels)
+    d = DataHelper(5, 10662, data, word_vec, word_indice, labels)
     data, label = d.next()
     print data.shape
     print label.shape
@@ -87,3 +88,5 @@ def usedataHelperOnTrueData():
 
 if __name__ == "__main__":
     usedataHelperOnTrueData()
+    # testListArray()
+    # test()

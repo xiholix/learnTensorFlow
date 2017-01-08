@@ -1,4 +1,4 @@
-#-*-coding:utf8-*-
+# -*-coding:utf8-*-
 import re
 import numpy as np
 import pickle
@@ -7,7 +7,7 @@ def loadData(): #从文件中读取文字，将其处理好返回
     polarity = ['neg', 'pos']
     pos = []
     neg = []
-    max = 0
+    max_len = 0
     sign = 0
     for p in polarity:
         f = open(path+p)
@@ -19,11 +19,11 @@ def loadData(): #从文件中读取文字，将其处理好返回
         while line:
             line = clean_str(line)
             datas.append(line)
-            if max < len(line.split()):
-                max = len(line.split())
+            if max_len < len(line.split()):
+                max_len = len(line.split())
             line = f.readline()
         sign = 1
-    return pos, neg, max
+    return pos, neg, max_len
 
 def clean_str(string):
   """
@@ -81,6 +81,7 @@ def getVocabulary(pos, neg):
     return list(vocabulary)
 
 def buildWordIndiceMap(pos, neg):
+    # 0号的indice不是已出现的word
     wordInice = {}
     indice = 1
     pos.extend(neg)
@@ -94,13 +95,14 @@ def buildWordIndiceMap(pos, neg):
     print indice
 
 def MapSentenceToIndicesAndPadding(pos, neg, max_len, wordIndices, padding=0):
+    #  padding用来指定左右填充的位数
     positive = []
     negative = []
     for p in pos:
         words = p.strip().split()
         t = []
         for word in words:
-            t.append(wordIndices[word])
+            t.append(wordIndices[word])   # bug 此处如果出现不在wordIndice中的word会出现错误
         if len(words) < max_len+padding:
             t.extend([0]*(max_len+padding-len(words)))
         if padding!= 0:
@@ -119,32 +121,11 @@ def MapSentenceToIndicesAndPadding(pos, neg, max_len, wordIndices, padding=0):
         negative.append(t)
     return np.array(positive), np.array(negative)
 
-def buildDataMatrix(pos, neg, word_vec, max_len):
-    posMatrix = []
-    word_dimension = len(word_vec.values()[0])
-    for p in pos:
-        words = p.split()
-        t = []
-        length = len(words)
-        for word in words:
-            if word in word_vec.keys():
-                t.append(word_vec[word])
-            else:
-                t.append(np.random.uniform(-0.25,0.25, (1, word_dimension)))
-        print len(t)
-        print len(t[0])
-        t = np.array(t)
-        print t.shape
-        break
 
 def getPaddingData():
-    word_vec = pickle.load(open('data/word_vecs.d'))
-    print len(word_vec.values())
     pos, neg, maxlen = loadData()
-    # buildDataMatrix(pos, neg, word_vec, maxlen)
-    vo = getVocabulary(pos, neg)
-    wordIndice = pickle.load(open('data/wordIndiceMap.d'))
-    pos, neg = MapSentenceToIndicesAndPadding(pos, neg, maxlen, wordIndice)
+    word_indice = pickle.load(open('data/wordIndiceMap.d'))
+    pos, neg = MapSentenceToIndicesAndPadding(pos, neg, maxlen, word_indice)
     return pos, neg
 
 def test():
@@ -165,6 +146,7 @@ def buildDataMatrix(pos, neg, word_vec, word_indice):
         onedata = pos[i]
         dataMatrix = vecMap[onedata]
         print dataMatrix
+        print dataMatrix.shape
         break
 
 

@@ -25,7 +25,7 @@ class CNNNet():
                                    name='conv_w')
               self.conv_w.append(con_w)
               conv_out = tf.nn.conv2d(self.input_x, con_w, strides=[1,1,1,1], padding='VALID', name='conv_out')
-              #in our code, conv_out has shape(batch_size, sentenc_len-step+1, 1, num_filters）
+              # in our code, conv_out has shape(batch_size, sentenc_len-step+1, 1, num_filters）
               conv_result.append( tf.nn.max_pool(conv_out,
                                                  ksize=(1, (self.sentence_len-step+1), 1, 1),
                                                  strides=[1,1,1,1],

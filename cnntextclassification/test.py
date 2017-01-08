@@ -1,5 +1,5 @@
 from cnnDefine import CNNNet
-from dataHelper import *
+from DataHelper import *
 import tensorflow as tf
 
 
@@ -18,8 +18,16 @@ indice = np.random.permutation(length)
 data = data[indice]
 labels = labels[indice]
 data_length = len(data)
+dev_indice = int(0.1*data_length)
+print dev_indice
 
-d = dataHelper(50, 10662, data, word_vec, word_indice, labels)
+train_data = data[dev_indice:]
+train_labels = labels[dev_indice:]
+dev_data = data[:dev_indice]
+dev_labels = labels[:dev_indice]
+
+d = DataHelper(50, len(train_data), train_data, word_vec, word_indice, train_labels)
+dev_d = DataHelper(50, len(dev_data), dev_data, word_vec, word_indice, dev_labels)
 
 cnn = CNNNet(4, [3,4,5], 50, 300, 56, 2)
 optm = tf.train.AdamOptimizer(1e-3)
@@ -53,8 +61,16 @@ with sess.as_default():
         loss, accuracys, data = sess.run([train_ops, cnn.accuracy, summary], feed_dicts)
         # summaryWriter.add_summary(data)
         print accuracys
-        s = cnn.conv_w[0].eval()
-        t = np.sum( s-arr)
-        print t
+        # s = cnn.conv_w[0].eval()
+        # t = np.sum( s-arr)
+        # print t
+        if i%100==0:
+            x, y = dev_d.next()
+            # print y
+            x = np.reshape(x, [-1, 56, 300, 1])
+            feed_dicts={cnn.input_x:x, cnn.input_y:y}
+            accuracys = sess.run([cnn.accuracy], feed_dicts)
+            print 'test accuracy is '
+            print accuracys
     else:
         train_step(x, y)

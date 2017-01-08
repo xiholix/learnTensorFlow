@@ -1,7 +1,7 @@
-#-*-coding:utf8-*-
+# -*-coding:utf8-*-
 import tensorflow as tf
 from processData import *
-from dataHelper import *
+from DataHelper import *
 tf.flags.DEFINE_integer('embedding_size', 100, 'the embedding size')
 tf.flags.DEFINE_integer('word_size', 300, 'the word size')
 tf.flags.DEFINE_integer('batch_size', 50, 'the batch size')
@@ -53,8 +53,12 @@ data = np.concatenate((pos,neg), axis=0)
 indice = np.random.permutation(length)
 data = data[indice]
 labels = labels[indice]
-d = dataHelper(50, 10662, data, word_vec, word_indice, labels)
-
+test_data = data[0.9*length:]
+test_labels = labels[0.9*length:]
+data = data[:0.9*length]
+labels = labels[:0.9*length]
+d = DataHelper(50, data.shape[0], data, word_vec, word_indice, labels)
+t_d = DataHelper(50, test_data.shape[0], test_data, word_vec, word_indice, test_labels)
 optm = tf.train.AdamOptimizer(1e-3)
 train_ops = optm.apply_gradients(optm.compute_gradients(cross_entropy))
 
@@ -67,13 +71,18 @@ def train_step(x, y):
 
 with sess.as_default():
   for i in xrange(10000):
-    x, y = d.next()
-    x = np.reshape(x, [-1,flags.max_length, flags.word_size, 1])
     if i%10 == 0:
-        feed_dicts = {x_placeholder:x, y_placeholder:y}
-        loss, accuracys = sess.run([train_ops, accuracy], feed_dicts)
-        print accuracys
+        a = 0
+        for i in range(20):
+            x, y = t_d.next()
+            x = np.reshape(x, [-1, flags.max_length, flags.word_size, 1])
+            feed_dicts = {x_placeholder:x, y_placeholder:y}
+            accuracys = sess.run(accuracy, feed_dicts)
+            a += accuracys
+        print a/20
     else:
+        x, y = d.next()
+        x = np.reshape(x, [-1, flags.max_length, flags.word_size, 1])
         train_step(x, y)
 
 
