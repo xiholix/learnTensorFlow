@@ -15,8 +15,9 @@ flags._parse_flags()
 
 x_placeholder = tf.placeholder(tf.float32, (None, flags.max_length, flags.word_size, 1), name='x_placeholder')
 y_placeholder = tf.placeholder(tf.int32, (None,2), name='y_placeholder')
+prob = tf.placeholder(tf.float32, name='prob')
 filter_steps = [3,4,5]
-
+l2_loss = tf.constant(0.0)
 pool_result = []
 for filter_size in filter_steps:
     con_weights = tf.Variable(    #该变量定义在for循环中是否不会更新
@@ -31,10 +32,13 @@ feature_size = flags.filter_channels*len(filter_steps)
 full_weights = tf.Variable(tf.truncated_normal([feature_size, flags.output_size], stddev=0.1))
 b = tf.Variable(tf.constant(0.1, shape=(2,)))
 
-out_put = tf.matmul(conv_out, full_weights) + b
+l2_loss += tf.nn.l2_loss(full_weights)
+l2_loss += tf.nn.l2_loss(b)
 
+out_put = tf.matmul(conv_out, full_weights) + b
+out_put = tf.nn.dropout(out_put, prob)
 predict = tf.nn.softmax(out_put)
-cross_entropy = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(predict, y_placeholder) )
+cross_entropy = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(predict, y_placeholder) ) + 0.1*l2_loss
 y_predict = tf.cast( tf.equal(tf.argmax(predict, 1), tf.argmax(y_placeholder, 1)), tf.float32)
 accuracy = tf.reduce_mean(y_predict)
 
@@ -66,23 +70,29 @@ sess = tf.Session()
 sess.run(tf.initialize_all_variables())
 
 def train_step(x, y):
-    feed_dicts = {x_placeholder:x, y_placeholder:y}
+    feed_dicts = {x_placeholder:x, y_placeholder:y, prob:0.5}
     loss = sess.run([train_ops], feed_dict=feed_dicts)
 
 with sess.as_default():
   for i in xrange(10000):
-    if i%10 == 0:
+    if i%100 == 0:
         a = 0
         for i in range(20):
             x, y = t_d.next()
             x = np.reshape(x, [-1, flags.max_length, flags.word_size, 1])
-            feed_dicts = {x_placeholder:x, y_placeholder:y}
+            feed_dicts = {x_placeholder:x, y_placeholder:y, prob:1}
             accuracys = sess.run(accuracy, feed_dicts)
             a += accuracys
-        print a/20
+        print 'test acc is ' + str(a/20)
     else:
         x, y = d.next()
         x = np.reshape(x, [-1, flags.max_length, flags.word_size, 1])
         train_step(x, y)
+        if i%100 == 1:
+             x = np.reshape(x, [-1, flags.max_length, flags.word_size, 1])
+             feed_dicts = {x_placeholder: x, y_placeholder: y, prob:1}
+             accuracys = sess.run(accuracy, feed_dicts)
+             print 'train acc is ' + str(accuracys)
+             print '***************************************\n\n'
 
 
