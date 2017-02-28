@@ -51,7 +51,6 @@ def run_training():
             feed_dict = fill_feed_dict(data_sets.train, images_placeholder, labels_placeholder, 50)
             _, loss_value = sess.run([train_operator, losses], feed_dict=feed_dict)
             duration = time.time()-start_time
-
             if (step+1)%100 == 0:
                 do_eval(sess, eval_correct, images_placeholder, labels_placeholder, data_sets.test, 50)
                 print 'hello '
