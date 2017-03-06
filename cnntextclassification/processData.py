@@ -3,7 +3,7 @@ import re
 import numpy as np
 import pickle
 def loadData(): #从文件中读取文字，将其处理好返回
-    path = 'data/rt-polaritydata/rt-polarity.'
+    path = 'data/rt-polarity.'
     polarity = ['neg', 'pos']
     pos = []
     neg = []
@@ -150,6 +150,14 @@ def buildDataMatrix(pos, neg, word_vec, word_indice):
         break
 
 
+def processFromBegin():
+    pos, neg, maxlen = loadData()
+    vocabulary = getVocabulary(pos, neg)
+    # word_vecs = load_bin_vec('data/GoogleNews-vectors-negative300.bin', vocabulary)
+    buildWordIndiceMap(pos, neg)
+    getPaddingData()
+
+
 if __name__ == "__main__":
     # pos, neg, maxlen = loadData()
     # vocabulary = getVocabulary(pos, neg)
@@ -159,5 +167,7 @@ if __name__ == "__main__":
     # p, neg, max = loadData()
     # print p[0]
     #
-    test()
+    # test()
+
+    processFromBegin()
     pass

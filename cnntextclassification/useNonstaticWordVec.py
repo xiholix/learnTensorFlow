@@ -18,7 +18,8 @@ class CNN:
     def __init__(self, word_vec_map, squence_length, num_classes, num_filters, filter_step,
                  voc_dim):
         self.word_vec_map = tf.get_variable('word_vec_map', shape=word_vec_map.shape,
-                                            initializer=tf.constant_initializer(word_vec_map), trainable=True)
+                                            initializer=tf.constant_initializer(word_vec_map), trainable=False)
+        self.init_word_vec_map = word_vec_map
         self.num_filters = num_filters
         self.filter_step = filter_step
         self.voc_dim = voc_dim
@@ -31,6 +32,7 @@ class CNN:
         with tf.device('/cpu:0'):
             self.net_input = tf.nn.embedding_lookup(self.word_vec_map, self.x)
             self.net_input_tensor = tf.expand_dims(self.net_input, dim=-1)
+# <<<<<<< HEAD
             pool_out = []
             # convolution layer
             for step in self.filter_step:
@@ -55,6 +57,37 @@ class CNN:
             self.acc = tf.reduce_mean(acc)
             optimizer = tf.train.AdamOptimizer(1e-4)
             self.train = optimizer.minimize(self.loss)
+# =======
+#         pool_out = []
+#         # convolution layer
+#         for step in self.filter_step:
+#             conv_w = tf.truncated_normal(shape=[step, self.voc_dim, 1, self.num_filters], stddev=0.1, name='conv_w')
+#             conv_w = tf.Variable(conv_w)
+#             conv_b = tf.constant(0.1, shape=[self.num_filters], dtype=tf.float32, name='conv_b')
+#             conv_b = tf.Variable(conv_b)
+#             conv_out = tf.nn.conv2d(self.net_input_tensor, conv_w, strides=[1,1,1,1], padding='VALID') + conv_b
+#             conv_out = tf.nn.relu(conv_out)
+#             # the output dimension is (batch_size, squence_length-step+1, 1, num_filters)
+#             conv_out = tf.nn.max_pool(conv_out, ksize=[1, squence_length-step+1, 1, 1], strides=[1,1,1,1], padding='VALID')
+#             # the conv_out dimension is (batch_size, 1, 1, 1)
+#             pool_out.append(conv_out)
+#         full_input = tf.concat(3, pool_out)
+#         full_input = tf.reshape(full_input, shape=[-1, len(self.filter_step)*self.num_filters])
+#         full_input = tf.nn.dropout(full_input, self.keep_prob)
+
+#         full_w = tf.truncated_normal(shape=[len(self.filter_step)*self.num_filters, num_classes], stddev=0.1, name='full_w')
+#         full_b = tf.constant(0.1, shape=[num_classes], dtype=tf.float32, name='full_b')
+#         full_w = tf.Variable(full_w)
+#         full_b = tf.Variable(full_b)
+#         output = tf.matmul(full_input, full_w) + full_b
+
+#         self.loss = tf.nn.softmax_cross_entropy_with_logits(output, self.y)
+#         acc = tf.cast(tf.equal(tf.argmax(output, dimension=1), tf.argmax(self.y, dimension=1)), tf.float32)
+#         self.acc = tf.reduce_mean(acc)
+#         optimizer = tf.train.AdamOptimizer(1e-2)
+#         self.train = optimizer.minimize(self.loss)
+#         self.equals = tf.reduce_sum(tf.cast(tf.not_equal(tf.cast(self.init_word_vec_map, tf.float32), self.word_vec_map) ,tf.int32))
+# >>>>>>> 8947acc75de039acafa92d819e692e239b0b1b4a
 
 
 
@@ -95,14 +128,17 @@ def test():
          x = np.reshape(x, [-1, 56])
          feed_dict = {cnn.x:x, cnn.y:y, cnn.keep_prob:0.9}
 
-         acc,_ = sess.run([cnn.acc, cnn.train], feed_dict=feed_dict)
-         if i%100 == 0:
+         acc,_, equals = sess.run([cnn.acc, cnn.train, cnn.equals], feed_dict=feed_dict)
+         if i%100 == 10:
              print acc
+             print equals
+             # break
     word_vec = pickle.load(open('data/word_vecs.d'))
     word_indice = pickle.load(open('data/wordIndiceMap.d'))
     word_vec_map = getWordVecMap(word_vec, word_indice)
-    t = tf.reduce_sum( tf.cast(tf.not_equal(tf.cast(word_vec_map, tf.float32), cnn.word_vec_map), tf.float32))
-    print t
+    # t = tf.reduce_sum( tf.cast(tf.not_equal(tf.cast(word_vec_map, tf.float32), cnn.word_vec_map), tf.float32))
+
+    # print t
 
 
 test()

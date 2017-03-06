@@ -68,14 +68,22 @@ sess = tf.Session()
 sess.run(init)
 begin = datetime.datetime.now()
 for i in range(10000):
+    
     batch = mnist.train.next_batch(100)
     d = sess.run(train, feed_dict={x: batch[0].reshape(-1, 28, 28, 1), y: batch[1], prob: 0.5})
     if i % 100 == 1:
         accs = sess.run(acc, feed_dict={x: batch[0].reshape(-1, 28, 28, 1), y: batch[1], prob: 1.0})
+        end = datetime.datetime.now()
+        print (end-begin).seconds
+        begin =end
         print accs
+<<<<<<< HEAD
         end = datetime.datetime.now()
         print (end-begin).seconds
         begin = end
+=======
+   
+>>>>>>> 8947acc75de039acafa92d819e692e239b0b1b4a
 print 'begin test'
 accs = 0
 for i in range(100):
