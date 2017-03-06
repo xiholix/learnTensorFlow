@@ -31,30 +31,30 @@ class CNN:
         with tf.device('/cpu:0'):
             self.net_input = tf.nn.embedding_lookup(self.word_vec_map, self.x)
             self.net_input_tensor = tf.expand_dims(self.net_input, dim=-1)
-        pool_out = []
-        # convolution layer
-        for step in self.filter_step:
-            conv_w = tf.truncated_normal(shape=[step, self.voc_dim, 1, self.num_filters], stddev=0.1, name='conv_w')
-            conv_b = tf.constant(0.1, shape=[self.num_filters], dtype=tf.float32, name='conv_b')
-            conv_out = tf.nn.conv2d(self.net_input_tensor, conv_w, strides=[1,1,1,1], padding='VALID') + conv_b
-            conv_out = tf.nn.relu(conv_out)
-            # the output dimension is (batch_size, squence_length-step+1, 1, num_filters)
-            conv_out = tf.nn.max_pool(conv_out, ksize=[1, squence_length-step+1, 1, 1], strides=[1,1,1,1], padding='VALID')
-            # the conv_out dimension is (batch_size, 1, 1, 1)
-            pool_out.append(conv_out)
-        full_input = tf.concat(3, pool_out)
-        full_input = tf.reshape(full_input, shape=[-1, len(self.filter_step)*self.num_filters])
-        full_input = tf.nn.dropout(full_input, self.keep_prob)
+            pool_out = []
+            # convolution layer
+            for step in self.filter_step:
+                conv_w = tf.truncated_normal(shape=[step, self.voc_dim, 1, self.num_filters], stddev=0.1, name='conv_w')
+                conv_b = tf.constant(0.1, shape=[self.num_filters], dtype=tf.float32, name='conv_b')
+                conv_out = tf.nn.conv2d(self.net_input_tensor, conv_w, strides=[1,1,1,1], padding='VALID') + conv_b
+                conv_out = tf.nn.relu(conv_out)
+                # the output dimension is (batch_size, squence_length-step+1, 1, num_filters)
+                conv_out = tf.nn.max_pool(conv_out, ksize=[1, squence_length-step+1, 1, 1], strides=[1,1,1,1], padding='VALID')
+                # the conv_out dimension is (batch_size, 1, 1, 1)
+                pool_out.append(conv_out)
+            full_input = tf.concat(3, pool_out)
+            full_input = tf.reshape(full_input, shape=[-1, len(self.filter_step)*self.num_filters])
+            full_input = tf.nn.dropout(full_input, self.keep_prob)
 
-        full_w = tf.truncated_normal(shape=[len(self.filter_step)*self.num_filters, num_classes], stddev=0.1, name='full_w')
-        full_b = tf.constant(0.1, shape=[num_classes], dtype=tf.float32, name='full_b')
-        output = tf.matmul(full_input, full_w) + full_b
+            full_w = tf.truncated_normal(shape=[len(self.filter_step)*self.num_filters, num_classes], stddev=0.1, name='full_w')
+            full_b = tf.constant(0.1, shape=[num_classes], dtype=tf.float32, name='full_b')
+            output = tf.matmul(full_input, full_w) + full_b
 
-        self.loss = tf.nn.softmax_cross_entropy_with_logits(output, self.y)
-        acc = tf.cast(tf.equal(tf.argmax(output, dimension=1), tf.argmax(self.y, dimension=1)), tf.float32)
-        self.acc = tf.reduce_mean(acc)
-        optimizer = tf.train.AdamOptimizer(1e-4)
-        self.train = optimizer.minimize(self.loss)
+            self.loss = tf.nn.softmax_cross_entropy_with_logits(output, self.y)
+            acc = tf.cast(tf.equal(tf.argmax(output, dimension=1), tf.argmax(self.y, dimension=1)), tf.float32)
+            self.acc = tf.reduce_mean(acc)
+            optimizer = tf.train.AdamOptimizer(1e-4)
+            self.train = optimizer.minimize(self.loss)
 
 
 
@@ -90,7 +90,7 @@ def test():
 
     optm = tf.train.AdamOptimizer(1e-3)
     train_ops = optm.apply_gradients(optm.compute_gradients(cnn.loss))
-    for i in range(10000):
+    for i in range(1000):
          x, y = d.next()
          x = np.reshape(x, [-1, 56])
          feed_dict = {cnn.x:x, cnn.y:y, cnn.keep_prob:0.9}

@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
+import datetime
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
 def weightVariable(shape, name):
@@ -65,13 +66,16 @@ train = optimizer.minimize(loss)
 init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
-
+begin = datetime.datetime.now()
 for i in range(10000):
     batch = mnist.train.next_batch(100)
     d = sess.run(train, feed_dict={x: batch[0].reshape(-1, 28, 28, 1), y: batch[1], prob: 0.5})
     if i % 100 == 1:
         accs = sess.run(acc, feed_dict={x: batch[0].reshape(-1, 28, 28, 1), y: batch[1], prob: 1.0})
         print accs
+        end = datetime.datetime.now()
+        print (end-begin).seconds
+        begin = end
 print 'begin test'
 accs = 0
 for i in range(100):
