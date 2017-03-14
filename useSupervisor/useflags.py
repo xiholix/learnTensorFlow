@@ -27,7 +27,7 @@
 import tensorflow as tf
 
 flags = tf.flags
-flags.DEFINE_string("data_path", None, "the input data path")
+flags.DEFINE_string("data_path", "hell", "the input data path")
 FLAGS = flags.FLAGS
 
 if __name__ =="__main__":
