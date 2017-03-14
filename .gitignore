@@ -65,3 +65,4 @@ rexx/spider.py
 *.png
 *.pyc
 *log/
+*/mydir/*
