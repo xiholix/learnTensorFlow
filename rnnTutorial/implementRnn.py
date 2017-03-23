@@ -27,7 +27,7 @@ class Config(object):
     vocabSize=10000
 
 
-class PTBModel():
+class PTBModel(object):
     def __init__(self, input, config, is_trainig):
         self.input = input
         self.batchSize = config.batchSize
@@ -81,7 +81,15 @@ class PTBModel():
         if not is_trainig:
             return
 
+        trainableVariables = tf.trainable_variables()
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, trainableVariables), config.maxGradNorm)
+        self._lr = tf.Variable(config.learingRate, trainable=False)
+        optimizer = tf.train.GradientDescentOptimizer(self._lr)
+        self.train = optimizer.apply_gradients(zip(grads, trainableVariables) )
 
+
+def run_epoch(session, model):
+    initStates = session.run(model.initStates)
 
 def testReadData():
     path = 'data/'
@@ -105,7 +113,7 @@ def runModel():
     train_data, valid_data, test_data, _ = datas
     config = Config()
     data_input = DataInput(train_data, config.batchSize, config.numSteps)
-    model = PTBModel(data_input, config, False)
+    model = PTBModel(data_input, config, True)
 
     init = tf.global_variables_initializer()
     sess = tf.Session()
@@ -113,8 +121,15 @@ def runModel():
     threads = tf.train.start_queue_runners(sess=sess)
     cost = sess.run(model.cost)
     print (cost)
+    state1 = sess.run(model.initStates)
+    for i in range(10):
+        sess.run(model.train)
+        print (i)
     cost = sess.run(model.cost)
     print(cost)
+    state2 = sess.run(model.initStates)
+    print (state1[0].c==state2[0].c)
+
 
 if __name__ == "__main__":
     # testReadData()
