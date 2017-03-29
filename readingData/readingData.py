@@ -52,6 +52,17 @@ def test_match_filenames_once():
     fileNamesNode = tf.train.string_input_producer(fileNamePatterns).dequeue()
     return fileNamesNode
 
+
+def test_read_from_csv():
+    fileNames = ['file1.csv']
+    fileNamesQueue = tf.train.string_input_producer(fileNames)
+    default_matrix = [[0],[0],[0],[0]]
+    reader = tf.TextLineReader()
+    key, values = reader.read(fileNamesQueue)
+    col1, col2, col3, col4 = tf.decode_csv(values, record_defaults=default_matrix)
+    return tf.stack([col1,col2,col3, col4])    #col1返回的仅仅是一个标量
+
+
 def test_run(_test_node):
     sess = tf.Session()
     init = tf.global_variables_initializer()
@@ -65,7 +76,8 @@ def test_run(_test_node):
 
 def test():
     # node = test_string_input_producer()
-    node = test_match_filenames_once()
+    # node = test_match_filenames_once()
+    node = test_read_from_csv()
     test_run(node)
 
 
