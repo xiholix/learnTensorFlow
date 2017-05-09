@@ -37,17 +37,17 @@ def read_tfrecord():
         'querys':tf.FixedLenFeature([3], tf.int64),
         'answers':tf.FixedLenFeature([1], tf.int64),
     })
-
+    t = tf.train.shuffle_batch([features['documents'], features['answers']],  3, 20, 15, )
     init = tf.global_variables_initializer()
     sess = tf.Session()
     sess.run(init)
 
     # tf.train.start_queue_runners(sess=sess)
     tf.train.start_queue_runners(sess=sess)
-    f = sess.run(features)
-    f = sess.run(features)  #运行多少次，就读取第几个example
-
-    print(f['documents'])
+    for i in xrange(6):
+        #验证了文件数据中的结果能够重复的猜想
+        f = sess.run(t)
+        print(f[0])
 
 
 if __name__ == "__main__":

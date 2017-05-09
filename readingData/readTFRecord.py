@@ -41,6 +41,7 @@ from tensorflow.examples.tutorials.mnist import mnist
 def test_readTFRecord():
     # filePath = ['data/train.tfrecords']
     filePath = ['train.tfrecorder']
+    # fileQueue = 'train.tfrecord'
     fileQueue = tf.train.string_input_producer(filePath)
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(fileQueue)
